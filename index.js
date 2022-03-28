@@ -1,6 +1,6 @@
-import { REST } from "@discordjs/rest";
-import { Routes } from "discord-api-types/v9";
-import { Client, Intents } from "discord.js";
+const { REST } = require("@discordjs/rest");
+const { Routes } = require("discord-api-types/v9");
+const { Client, Intents } = require("discord.js");
 
 const BOT_AUTH_TOKEN = process.env.BOT_AUTH_TOKEN;
 const BOT_CLIENT_ID = process.env.BOT_CLIENT_ID;
