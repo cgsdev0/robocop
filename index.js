@@ -1,10 +1,12 @@
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 const { Client, Intents } = require("discord.js");
+const WebSocket = require('ws');
 
 const BOT_AUTH_TOKEN = process.env.BOT_AUTH_TOKEN;
 const BOT_CLIENT_ID = process.env.BOT_CLIENT_ID;
 const BOT_GUILD_ID = process.env.BOT_GUILD_ID;
+const TAU_AUTH_TOKEN = process.env.TAU_AUTH_TOKEN;
 
 const commands = [
   {
@@ -47,3 +49,19 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.login(BOT_AUTH_TOKEN);
+
+const ws = new WebSocket('wss://tau.cgs.dev/ws/twitch-events/');
+
+ws.onopen = () => {
+	ws.send(JSON.stringify({token: TAU_AUTH_TOKEN}));
+};
+
+ws.onmessage = async (msg) => {
+	const data = JSON.parse(msg.data);
+	if (data.event_type === "stream-online") {
+		const twitch_url=`https://twitch.tv/${data.event_data.broadcaster_user_login}`;
+		const message=`${data.event_data.broadcaster_user_name} just went live! Come hang out at ${twitch_url}`;
+		const channel = await client.channels.cache.get('957859250296721421');
+		channel.send(message);
+	}
+}
