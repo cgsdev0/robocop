@@ -62,6 +62,8 @@ ws.onmessage = async (msg) => {
 		const twitch_url=`https://twitch.tv/${data.event_data.broadcaster_user_login}`;
 		const message=`${data.event_data.broadcaster_user_name} just went live! Come hang out at ${twitch_url}`;
 		const channel = await client.channels.cache.get('957859250296721421');
-		channel.send(message);
+		
+		// wait 5 minutes before sending the message to Discord
+		setTimeout(() => channel.send(message), 5 * 60 * 1000);
 	}
 }
