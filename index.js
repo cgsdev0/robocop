@@ -50,20 +50,29 @@ client.on("interactionCreate", async (interaction) => {
 
 client.login(BOT_AUTH_TOKEN);
 
-const ws = new WebSocket('wss://tau.cgs.dev/ws/twitch-events/');
 
-ws.onopen = () => {
-	ws.send(JSON.stringify({token: TAU_AUTH_TOKEN}));
-};
+const setupWebsocket = () => {
+	let ws = new WebSocket('wss://tau.cgs.dev/ws/twitch-events/');
 
-ws.onmessage = async (msg) => {
-	const data = JSON.parse(msg.data);
-	if (data.event_type === "stream-online") {
-		const twitch_url=`https://twitch.tv/${data.event_data.broadcaster_user_login}`;
-		const message=`${data.event_data.broadcaster_user_name} just went live! Come hang out at ${twitch_url}`;
-		const channel = await client.channels.cache.get('957859250296721421');
-		
-		// wait 5 minutes before sending the message to Discord
-		setTimeout(() => channel.send(message), 5 * 60 * 1000);
+	ws.onopen = () => {
+		console.log("TAU websocket open!");
+		ws.send(JSON.stringify({token: TAU_AUTH_TOKEN}));
+	};
+
+	ws.onclose = () => {
+		console.log("TAU websocket closed, reconnecting in 5 seconds...");
+		setTimeout(() => setupWebsocket(), 5000);
+	};
+
+	ws.onmessage = async (msg) => {
+		const data = JSON.parse(msg.data);
+		if (data.event_type === "stream-online") {
+			const twitch_url=`https://twitch.tv/${data.event_data.broadcaster_user_login}`;
+			const message=`${data.event_data.broadcaster_user_name.replaceAll('_', '\\_')} just went live! Come hang out at ${twitch_url}`;
+			const channel = await client.channels.cache.get('957859250296721421');
+			
+			channel.send(message);
+		}
 	}
 }
+setupWebsocket();
